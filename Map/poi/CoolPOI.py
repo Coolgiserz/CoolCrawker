@@ -2,7 +2,9 @@
 #coding:utf-8
 import json
 import requests
-
+'''
+关键字搜索
+'''
 
 class POIController(object):
     def __init__(self,key):
@@ -51,7 +53,10 @@ class POIController(object):
         type = p.get('type')
         address = p.get('address')
         location = p.get('location')
-        result = name + ',' + type + ',' + location + ',' + address + '\n'
+        try:
+            result = name + ',' + type + ',' + location + ',' + address + '\n'
+        except TypeError:
+            print('错误：%s'%type)
         return result
 
     def poi2txt(self,fname='test.txt'):
@@ -59,20 +64,20 @@ class POIController(object):
         for p in self.poi:
             f.write(self.json2plain(p))
         f.close()
-    def poi2txt(self,mpage):
+    def poi2txt_page(self,mpage):
         self.url = 'http://restapi.amap.com/v3/place/text?&keywords='+self.keyword+'&city='+self.city+'&output=json&offset='+str(self.offset)+'&page='+str(mpage)+'&key='+self.key+'&extensions='+self.extension
         text = self.url2text()
         poi = self.text2json(text)
         for p in poi:
             self.file.write(self.json2plain(p))
 
-    def poi2txtplus(self,pages,fname='poires.txt'):
+    def poi2txt_page_file(self,pages,fname='poires.txt'):
         self.file = open(fname,'a+')
 
         if(len(pages)<0):
             print('数组数目错误')
         for p in pages: #对于每一页，都爬取下来
-            self.poi2txt(p)
+            self.poi2txt_page(p)
         pass
 
     def poi2file(self, mpage,poitype):
@@ -93,20 +98,33 @@ class POIController(object):
                 self.poi2file(p,str(type))
 
 key='9f99fc570ccaf6abc209780433d9f4c1'
-keywords='出入口'
+
+mpages = range(6)
+poitype = ['出入口','房地产','公司','购物','行政地标','交通设施','教育培训','金融','酒店','旅游景点','美食','汽车服务','生活服务','文化传媒','休闲娱乐','运动健身','政府机构']
+fnametype = ['出入口','房地产','公司','购物','行政地标','交通设施','教育培训','金融','酒店','旅游景点','美食','汽车服务','生活服务','文化传媒','休闲娱乐','运动健身','政府机构']
+
+index = 4
+# keywords=poitype[index]
+# fpath = fnametype[index]+'.txt'
 city = '上海'
 offset = 200
 page = 1;
-mpages = range(6)
-poitype = ['出入口','房地产','公司','购物','行政地标','交通设施','教育培训','金融','酒店','旅游景点','美食','汽车服务','生活服务','文化传媒','休闲娱乐','运动健身','政府机构']
 print(mpages)
 print(poitype)
 
+#*****************************************************
 controller = POIController(key)
-controller.setproperties(city,keywords,offset,page)
-# text = controller.url2text()
-# controller.text2json(text)
-# # controller.json2plain()
-# controller.poi2txt()
+for i in range(16,len(poitype)):
+    keywords = poitype[i]
+    fpath = fnametype[i] + '.txt'
+    controller.setproperties(city,keywords,offset,page)
+    text = controller.url2text()
+    controller.text2json(text)
+    controller.poi2txt_page_file(mpages,fpath)
+#*****************************************************
+
+#*****************************************************
+
+
 # fpath = '../resources/poi.txt'
 # controller.poi2txtplus(mpages,poitype,fpath)
